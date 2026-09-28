@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Planificador semanal</title>
+  <meta name="description" content="Planificación semanal de lunes a domingo. Tareas, recurrentes y resumen. Funciona offline.">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Semana">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">📅</span>
+      <div>
+        <h1>Planificador semanal</h1>
+        <p id="weekLabel" class="week-label">—</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button id="btnInstall" class="btn ghost hidden" title="Instalar app">⬇️</button>
+      <button id="btnNew" class="btn primary">+ Nueva</button>
+      <button id="btnTheme" class="btn ghost" title="Cambiar modo">🌙</button>
+    </div>
+  </header>
+
+  <nav class="week-nav">
+    <button id="btnPrev" class="btn">← Anterior</button>
+    <button id="btnToday" class="btn">Hoy</button>
+    <button id="btnNext" class="btn">Siguiente →</button>
+  </nav>
+
+  <section class="summary">
+    <div class="card"><span class="kpi" id="kpiTotal">0</span><span class="lbl">Total</span></div>
+    <div class="card ok"><span class="kpi" id="kpiDone">0</span><span class="lbl">Hechas</span></div>
+    <div class="card warn"><span class="kpi" id="kpiPending">0</span><span class="lbl">Pendientes</span></div>
+    <div class="card progress-card">
+      <div class="progress-head"><span id="kpiPct">0%</span><span class="lbl">Cumplimiento</span></div>
+      <div class="bar"><div id="barFill" class="fill" style="width:0%"></div></div>
+    </div>
+  </section>
+
+  <p class="swipe-hint">Deslizá ← → para cambiar de semana · Tocá una tarea para completarla</p>
+  <main id="calendar" class="calendar"></main>
+  <div style="height:90px"></div>
+
+  <nav class="bottombar">
+    <button id="mPrev" class="mbtn" aria-label="Semana anterior">←</button>
+    <button id="mToday" class="mbtn" aria-label="Hoy">Hoy</button>
+    <button id="mAdd" class="mbtn fab" aria-label="Nueva tarea">+</button>
+    <button id="mNext" class="mbtn" aria-label="Semana siguiente">→</button>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Modal de autenticación -->
+  <div id="authModal" class="modal hidden">
+    <form id="authForm" class="modal-card">
+      <h2 id="authTitle">Iniciar sesión</h2>
+      <label>Email<input id="authEmail" type="email" required placeholder="tu@email.com" autocomplete="email"></label>
+      <label>Contraseña<input id="authPassword" type="password" required placeholder="••••••••" autocomplete="current-password"></label>
+      <div id="authError" class="auth-error hidden"></div>
+      <div class="modal-actions">
+        <button type="button" id="authToggle" class="btn ghost">Crear cuenta</button>
+        <span style="flex:1"></span>
+        <button type="submit" class="btn primary" id="authSubmit">Entrar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal de tareas -->
+  <div id="modal" class="modal hidden">
+    <form id="taskForm" class="modal-card">
+      <h2 id="modalTitle">Nueva tarea</h2>
+      <label>Nombre<input id="fTitle" required maxlength="80" placeholder="Ej: Gym, informe, comprar…" autocomplete="off"></label>
+      <div class="row">
+        <label>Día<select id="fDay">
+          <option value="0">Lunes</option><option value="1">Martes</option><option value="2">Miércoles</option>
+          <option value="3">Jueves</option><option value="4">Viernes</option><option value="5">Sábado</option><option value="6">Domingo</option>
+        </select></label>
+        <label>Hora (opcional)<input id="fTime" type="time"></label>
+      </div>
+      <div class="row">
+        <label>Categoría<input id="fCat" list="cats" placeholder="Trabajo, Salud…"><datalist id="cats">
+          <option value="Trabajo"></option><option value="Personal"></option><option value="Salud"></option>
+          <option value="Estudio"></option><option value="Hogar"></option><option value="Otros"></option>
+        </datalist></label>
+        <label>Prioridad<select id="fPrio"><option value="media">Media</option><option value="alta">Alta</option><option value="baja">Baja</option></select></label>
+      </div>
+      <label class="check"><input id="fRec" type="checkbox"> Repetir semanalmente</label>
+      <div class="modal-actions">
+        <button type="button" id="btnDelete" class="btn danger hidden">Eliminar</button>
+        <span style="flex:1"></span>
+        <button type="button" id="btnCancel" class="btn">Cancelar</button>
+        <button type="submit" class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Importmap para Supabase JS -->
+  <script type="importmap">
+  {
+    "imports": {
+      "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+    }
+  }
+  </script>
+
+  <!-- Configuración (variables de entorno) -->
+  <script src="config.js"></script>
+
+  <!-- Módulo de conexión a Supabase -->
+  <script type="module" src="supabase.js"></script>
+
+  <!-- App principal -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

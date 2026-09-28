@@ -1,0 +1,12 @@
+# ============================================================
+# Configuración de Netlify — Planificador Semanal + Supabase
+# ============================================================
+
+[build]
+  # Comando de build: genera config.js con las variables de entorno
+  command = "node -e \"const fs=require('fs');fs.writeFileSync('config.js','window.SUPABASE_URL='+JSON.stringify(process.env.SUPABASE_URL||'')+';window.SUPABASE_ANON_KEY='+JSON.stringify(process.env.SUPABASE_ANON_KEY||'')+';')\""
+  publish = "."
+
+# Variables de entorno (configurar en Netlify Dashboard):
+# SUPABASE_URL       → URL de tu proyecto Supabase
+# SUPABASE_ANON_KEY  → Anon key de tu proyecto Supabase
